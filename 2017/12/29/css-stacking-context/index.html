@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.3">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.3">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.3" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CSS3," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="第一部分，position: fixed失效的问题；第二部分，了解一下由此扯出的一个Stacking Context层叠上下文。文中大部分内容来自于我对W3C文档及一些英文资料的理解，如有不明确或表述不准确的地方还请指出。">
+<meta name="keywords" content="CSS3">
+<meta property="og:type" content="article">
+<meta property="og:title" content="fixed 定位与 CSS 层叠上下文的关系">
+<meta property="og:url" content="http://pandapm.github.io/2017/12/29/css-stacking-context/index.html">
+<meta property="og:site_name" content="「 椒图笔记 」">
+<meta property="og:description" content="第一部分，position: fixed失效的问题；第二部分，了解一下由此扯出的一个Stacking Context层叠上下文。文中大部分内容来自于我对W3C文档及一些英文资料的理解，如有不明确或表述不准确的地方还请指出。">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="http://pandapm.github.io/2017/12/29/css-stacking-context/origin1.svg">
+<meta property="og:updated_time" content="2018-01-05T09:48:48.525Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="fixed 定位与 CSS 层叠上下文的关系">
+<meta name="twitter:description" content="第一部分，position: fixed失效的问题；第二部分，了解一下由此扯出的一个Stacking Context层叠上下文。文中大部分内容来自于我对W3C文档及一些英文资料的理解，如有不明确或表述不准确的地方还请指出。">
+<meta name="twitter:image" content="http://pandapm.github.io/2017/12/29/css-stacking-context/origin1.svg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.3',
+    sidebar: {"position":"right","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: 'undefined',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://pandapm.github.io/2017/12/29/css-stacking-context/"/>
+
+
+
+
+
+  <title>fixed 定位与 CSS 层叠上下文的关系 | 「 椒图笔记 」</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">「 椒图笔记 」</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-paint-brush"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://pandapm.github.io/2017/12/29/css-stacking-context/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="PM">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/cg.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="「 椒图笔记 」">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">fixed 定位与 CSS 层叠上下文的关系</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-12-29T18:07:41+00:00">
+                2017-12-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web前端/" itemprop="url" rel="index">
+                    <span itemprop="name">Web前端</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-comment-o"></i>
+              </span>
+              
+                <a href="/2017/12/29/css-stacking-context/#SOHUCS" itemprop="discussionUrl">
+                  <span id="changyan_count_unit" class="post-comments-count hc-comment-count" data-xid="2017/12/29/css-stacking-context/" itemprop="commentsCount"></span>
+                </a>
+              
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>第一部分，position: fixed失效的问题；<br>第二部分，了解一下由此扯出的一个Stacking Context层叠上下文。<br>文中大部分内容来自于我对W3C文档及一些英文资料的理解，如有不明确或表述不准确的地方还请指出。<br><a id="more"></a></p>
+<h2 id="关于-position-fixed"><a href="#关于-position-fixed" class="headerlink" title="关于 position: fixed"></a>关于 position: fixed</h2><p><code>position: fixed</code> 在日常布局中比较常用，如移动端头部和底部导航定位、模态框、悬浮按钮等，设置了这个属性值得元素会相对于屏幕视口（viewport）进行定位，其位置在屏幕进行滚动时会保持不变，不占用文档流中的位置，而且打印时这个元素会出现在 <em>每一页</em> 的相同位置。设置了 <code>position: fixed</code> 的元素最终的位置由它的 <code>top</code>, <code>right</code>, <code>bottom</code>, <code>left</code> 来决定，这个值会创建一个新的 <code>stacking context</code>（不知道这个词应该如何准确地翻译，姑且认为是层叠上下文吧）。<br>但是，有些情况下，这种定位方式会失效，使得元素相对于视窗定位的定位不符合预期（其实是 <code>fixed</code> 定位的参考元素变了）。当该元素的父元素中（广义，包含祖先元素）有元素的 <code>transform</code> 或 <code>perspective</code> 的值不是 <code>none</code>，该元素就会相对于这个父元素而不是视口进行定位。<br>具体的原因是这样：</p>
+<blockquote>
+<p>Specifying a value other than none for the transform property establishes a new local coordinate system at the element that it is applied to. The mapping from where the element would have rendered into that local coordinate system is given by the element’s transformation matrix. Transformations are cumulative. That is, elements establish their local coordinate system within the coordinate system of their parent. From the perspective of the user, an element effectively accumulates all the transform properties of its ancestors as well as any local transform applied to it. The accumulation of these transforms defines a current transformation matrix for the element.</p>
+</blockquote>
+<p>解释一下，<code>transform</code> 或 <code>perspective</code> 的非 <code>none</code> 值会影响元素的包含块和层叠上下文，这些值会在应用它的元素上建立一个局部的坐标系（X轴向右水平增加; Y轴垂直向下增加），由变换矩阵（<code>transform</code> 的值）给出元素到该局部坐标系的映射，而且 <code>transform</code> 带来的局部坐标系的改变是可以累积的——也就是说，子元素会在它的父元素的坐标系内建立子元素自己的局部坐标系：<br>父元素的 <code>transform</code> 们一层层积累定义了子元素当前的变换矩阵（一个元素的变换矩阵是从 <code>transform</code> 和 <code>transform-origin</code> 属性中计算出来的），步骤如下：</p>
+<ul>
+<li>通过 <code>transform-origin</code> 的值对坐标原点 <code>X</code> 和 <code>Y</code> 的位置进行转换</li>
+<li>以变换后的 <code>X</code>、<code>Y</code> 为坐标原点原点，根据 <code>transform</code> 的属性值进行变换</li>
+<li><code>X</code> 和 <code>Y</code> 根据 <code>transform-origin</code> 的相反值平移回去</li>
+</ul>
+<p>如图：</p>
+<p><img src="/2017/12/29/css-stacking-context/origin1.svg" alt="transform 计算过程"></p>
+<p><code>transform</code> 会影响最终的渲染效果，但是不影响除overflow外的CSS布局，当通过 <code>getClientRects()</code>、<code>getBoundingClientRect()</code> 这些接口获取 <code>client rectangles</code> 时，<code>transform</code> 的效果也会被考虑进去。</p>
+<p>可以应用 <code>transform</code> 的元素（<code>transformable elements</code>）有：</p>
+<ul>
+<li>满足CSS盒模型的块级元素或行内元素，或者它的 <code>display</code> 值为 <code>table-row</code>, <code>table-row-group</code>, <code>table-header-group</code>, <code>table-footer-group</code>, <code>table-cell</code>, <code>table-caption</code> 中的一个</li>
+<li><code>SVG</code> 命名空间中具有 <code>transform</code>, <code>patternTransform</code> 或 <code>gradientTransform</code> 属性的元素</li>
+</ul>
+<p>p.s. 关于上面的应用transform后元素位置的计算方式，是我按照自己的理解翻译了原文的内容，如有不准确的地方还请指出。原文如下：<br> &gt;</p>
+<ol>
+<li>Start with the identity matrix.</li>
+<li>Translate by the computed X and Y of transform-origin</li>
+<li>Multiply by each of the transform functions in transform property from left to right</li>
+<li>Translate by the negated computed X and Y values of transform-origin</li>
+</ol>
+<p>参考文档：</p>
+<p><a href="https://www.w3.org/TR/css-transforms-1/#propdef-transform" target="_blank" rel="noopener">The transform Property - W3C Working Draft - 30 November 2017</a></p>
+<p><a href="https://www.w3.org/TR/css-transforms-1/#transform-rendering" target="_blank" rel="noopener">The Transform Rendering Model - W3C Working Draft - 30 November 2017</a></p>
+<h2 id="层叠上下文-Stacking-Context"><a href="#层叠上下文-Stacking-Context" class="headerlink" title="层叠上下文 Stacking Context"></a>层叠上下文 Stacking Context</h2><p>通过上文我们知道了有层叠上下文这么一个东西，层叠上下文是HTML元素的三维概念，这些HTML元素在一条假想的相对于面向（电脑屏幕的）视窗z轴上延伸，HTML元素依据其自身属性按照优先级顺序占用层叠上下文的空间。和BFC还有IFC这些xx context一样，创建层叠上下文也是有条件的，文档中的层叠上下文由满足以下任意一个条件的元素形成：</p>
+<ul>
+<li>根元素 (HTML),</li>
+<li>z-index 值不为 <code>auto</code> 的 绝对/相对定位元素</li>
+<li>position 不是 static 的元素（sticky 也会创建层叠上下文，这是一个神奇的实验中的属性值）</li>
+<li>一个 z-index 值不为 <code>auto</code> 的 flex 项目 (flex item)</li>
+<li>opacity 属性值小于 1 的元素（参考 <a href="https://www.w3.org/TR/css-color-3/#transparency" target="_blank" rel="noopener">the specification for opacity</a>）</li>
+<li><code>transform</code> 属性值不为 <code>none</code> 的元素</li>
+<li><code>mix-blend-mode</code> 属性值不为 <code>normal</code> 的元素</li>
+<li>有 <code>transform</code>、<code>filter</code>、<code>perspective</code>、<code>clip-path</code>、<code>mask / mask-image / mask-border</code> 这些属性中任意一个或多个属性的元素</li>
+<li><code>isolation</code> 属性被设置为 <code>isolate</code>的元素</li>
+<li>在 <code>will-change 中指定了任意</code>CSS` 属性的元素（即使没有直接指定这些属性的值）</li>
+<li><code>-webkit-overflow-scrolling</code> 属性被设置 <code>touch</code>的元素</li>
+<li>设置了 <code>transform-style: preserve-3d</code> 的元素</li>
+</ul>
+<p>在层叠上下文中的子元素也会按照上面的规则进行层叠，子元素的 <code>z-index</code> 值只在父级层叠上下文中有意义，<em>子级层叠上下文</em>被自动视为<em>父级层叠上下文</em>的一个<em>独立单元</em>。</p>
+<p>但是，并不是创建了新的层叠上下文的元素并不一定都会对其拥有position: fixed的子元素的效果产生影响，<br>在Chrome（Blink内核）中，可以明确看到产生了影响的是：</p>
+<ul>
+<li><code>transform</code> 属性值不为 <code>none</code> 的元素</li>
+<li>设置了 <code>transform-style: preserve-3d</code> 的元素</li>
+<li><code>perspective</code> 值不为 <code>none</code> 的元素</li>
+<li>在 <code>will-change</code> 中指定了任意 <code>CSS</code> 属性的元素</li>
+</ul>
+<p>但是，在不同的浏览器内核下，上述结论也会有所差异，例如，在 Safari（Webkit内核） 中，只有<code>transform</code> 属性值不为 <code>none</code> 的元素会对 <code>fixed</code> 定位的效果产生影响.</p>
+<p>参考文档：</p>
+<p><a href="https://www.w3.org/TR/css-color-3/#transparency" target="_blank" rel="noopener">the specification for opacity - W3C</a></p>
+<p><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Positioning/Understanding_z_index/The_stacking_context" target="_blank" rel="noopener">The stacking context - MDN</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CSS3/" rel="tag"># CSS3</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/11/06/avoid-blank-src/" rel="next" title="为什么前端优化时要避免空的src">
+                <i class="fa fa-chevron-left"></i> 为什么前端优化时要避免空的src
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="SOHUCS"></div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/cg.png"
+                alt="PM" />
+            
+              <p class="site-author-name" itemprop="name">PM</p>
+              <p class="site-description motion-element" itemprop="description">前端, 博客, 笔记</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">tags</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/pandapm" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:panda_m@126.com" target="_blank" title="E-Mail">
+                    
+                      <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#关于-position-fixed"><span class="nav-number">1.</span> <span class="nav-text">关于 position: fixed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#层叠上下文-Stacking-Context"><span class="nav-number">2.</span> <span class="nav-text">层叠上下文 Stacking Context</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart-o"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">PM</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.3</div>
+
+
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+<span id="busuanzi_container_site_pv">
+    <i class="fa fa-eye" aria-hidden="true"></i>&#32;&#32;<span id="busuanzi_value_site_pv"></span>
+</span>
+<span id="busuanzi_container_site_uv">
+  <i class="fa fa-user" aria-hidden="true"></i>&#32;&#32;<span id="busuanzi_value_site_uv"></span>
+</span>
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+  
+    <script type="text/javascript">
+    (function(){
+      var appid = 'cysN5dKcK';
+      var conf = 'b76227f895912863e463f79c302a9752';
+      var width = window.innerWidth || document.documentElement.clientWidth;
+      if (width < 960) {
+      window.document.write('<script id="changyan_mobile_js" charset="utf-8" type="text/javascript" src="https://changyan.sohu.com/upload/mobile/wap-js/changyan_mobile.js?client_id=' + appid + '&conf=' + conf + '"><\/script>'); } else { var loadJs=function(d,a){var c=document.getElementsByTagName("head")[0]||document.head||document.documentElement;var b=document.createElement("script");b.setAttribute("type","text/javascript");b.setAttribute("charset","UTF-8");b.setAttribute("src",d);if(typeof a==="function"){if(window.attachEvent){b.onreadystatechange=function(){var e=b.readyState;if(e==="loaded"||e==="complete"){b.onreadystatechange=null;a()}}}else{b.onload=a}}c.appendChild(b)};loadJs("https://changyan.sohu.com/upload/changyan.js",function(){
+        window.changyan.api.config({appid:appid,conf:conf})});
+      }
+    })();
+    </script>
+    <script type="text/javascript" src="https://assets.changyan.sohu.com/upload/plugins/plugins.count.js"></script>
+  
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
